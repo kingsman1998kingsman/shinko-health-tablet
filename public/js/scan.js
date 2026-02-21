@@ -63,4 +63,24 @@ async function startScan() {
   }
 }
 
+// Add this to your scan.js file
+async function stopScan() {
+  if (qrScanner) {
+    try {
+      // Safely shut down the camera hardware
+      await qrScanner.stop();
+      qrScanner.clear();
+    } catch (err) {
+      console.error("Error stopping scanner", err);
+    }
+  }
+  
+  // Reset the UI
+  document.getElementById("reader-container").classList.add("hidden");
+  document.getElementById("idleState").classList.remove("hidden");
+  document.getElementById("status").textContent = "";
+  scanningLocked = false;
+}
+
+document.getElementById("cancelScanBtn").addEventListener("click", stopScan);
 document.getElementById("startBtn").addEventListener("click", startScan);
