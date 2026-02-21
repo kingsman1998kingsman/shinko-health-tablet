@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Shinko | Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 min-h-screen">
+  <nav class="bg-white border-b border-slate-200 px-8 py-4 flex justify-between items-center">
+    <h1 class="text-xl font-bold text-blue-600 tracking-tight">SHINKO HEALTH</h1>
+    <div class="flex items-center gap-4">
+      <span id="userName" class="text-slate-600 font-medium">Loading User...</span>
+      <button onclick="logout()" class="text-sm text-red-500 hover:text-red-700 font-medium">Sign Out</button>
+    </div>
+  </nav>
+
+  <main class="max-w-6xl mx-auto p-8">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+        <p class="text-slate-500 text-sm uppercase">Daily Activity</p>
+        <h2 class="text-3xl font-bold text-slate-800">8,432 <span class="text-sm font-normal text-slate-400">steps</span></h2>
+      </div>
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+        <p class="text-slate-500 text-sm uppercase">Heart Rate</p>
+        <h2 class="text-3xl font-bold text-slate-800 text-rose-500">72 <span class="text-sm font-normal text-slate-400">bpm</span></h2>
+      </div>
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+        <p class="text-slate-500 text-sm uppercase">Sleep Quality</p>
+        <h2 class="text-3xl font-bold text-slate-800">85<span class="text-sm font-normal text-slate-400">%</span></h2>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm">
+      <h3 class="text-lg font-bold mb-4">Patient Overview</h3>
+      <div class="h-64 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200 flex items-center justify-center text-slate-400">
+        Chart.js Visualization Placeholder
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Security check: Redirect if no user data found
+    const user = JSON.parse(localStorage.getItem("shinko_user"));
+    if (!user) {
+      window.location.href = "./index.html";
+    } else {
+      document.getElementById("userName").textContent = user.name;
+    }
+
+    function logout() {
+      localStorage.removeItem("shinko_user");
+      window.location.href = "./index.html";
+    }
+  </script>
+</body>
+</html>

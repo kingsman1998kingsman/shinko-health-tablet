@@ -3,21 +3,29 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Shinko Health Tablet</title>
-  <style>
-    body { font-family: sans-serif; padding: 24px; }
-    .btn { font-size: 20px; padding: 14px 22px; cursor: pointer; }
-    #reader { margin-top: 16px; width: 360px; }
-    #status { margin-top: 12px; }
-  </style>
+  <title>Shinko Tablet | Check-In</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <h2>Tablet Login</h2>
+<body class="bg-black flex flex-col items-center justify-center min-h-screen text-white overflow-hidden">
+  <div class="z-10 text-center space-y-8 w-full max-w-lg px-6">
+    <div class="space-y-2">
+      <h1 class="text-4xl font-light tracking-widest uppercase">Shinko Health</h1>
+      <p class="text-slate-400">Tablet Terminal v1.0</p>
+    </div>
 
-  <button id="startBtn" class="btn">Start</button>
+    <div id="reader-container" class="relative group mx-auto hidden overflow-hidden rounded-3xl border-4 border-slate-800 shadow-2xl">
+      <div id="reader" class="w-full aspect-square"></div>
+      <div class="absolute inset-0 border-2 border-blue-500/50 pointer-events-none animate-pulse"></div>
+    </div>
 
-  <div id="reader" style="display:none;"></div>
-  <p id="status"></p>
+    <div id="idleState" class="py-12">
+      <button id="startBtn" class="bg-white text-black px-12 py-4 rounded-full font-bold text-lg hover:bg-blue-500 hover:text-white transition-all transform hover:scale-105 active:scale-95">
+        TAP TO SCAN
+      </button>
+    </div>
+
+    <p id="status" class="text-slate-500 font-mono text-sm tracking-tighter uppercase"></p>
+  </div>
 
   <script src="https://unpkg.com/html5-qrcode"></script>
   <script src="./js/scan.js"></script>

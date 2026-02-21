@@ -1,77 +1,66 @@
-// ===== CONFIG =====
 const API_BASE = "https://shinko-health-server.up.railway.app";
-
-let qr = null;
+let qrScanner = null;
 let scanningLocked = false;
 
 async function consumeToken(token) {
   const status = document.getElementById("status");
-  status.textContent = "Checking token...";
+  status.textContent = "Verifying Identity...";
 
-  const res = await fetch(`${API_BASE}/qr/consume`, {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ token })
-  });
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    status.textContent = data.detail || "Failed";
-    scanningLocked = false;
-    return;
-  }
-
-  // Save session (simple)
-  localStorage.setItem("shinko_user", JSON.stringify(data.user));
-
-  // Stop camera
   try {
-    await qr.stop();
-    await qr.clear();
-  } catch (e) {}
+    const res = await fetch(`${API_BASE}/qr/consume`, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ token })
+    });
 
-  // Redirect to home
-  window.location.href = "./home.html";
+    const data = await res.json();
+
+    if (!res.ok) {
+      status.textContent = data.detail || "Access Denied";
+      scanningLocked = false;
+      return;
+    }
+
+    // Securely store session for home.html
+    localStorage.setItem("shinko_user", JSON.stringify(data.user));
+
+    if (qrScanner) {
+      await qrScanner.stop();
+    }
+    
+    status.textContent = "Access Granted. Redirecting...";
+    window.location.href = "./home.html";
+
+  } catch (err) {
+    status.textContent = "Network Error";
+    scanningLocked = false;
+  }
 }
 
 function onScanSuccess(decodedText) {
   if (scanningLocked) return;
   if (!decodedText.startsWith("qrlogin:")) return;
 
-  scanningLocked = true; // lock immediately
-  const token = decodedText.slice("qrlogin:".length).trim();
+  scanningLocked = true;
+  const token = decodedText.slice(8).trim(); // Remove "qrlogin:"
   consumeToken(token);
 }
 
 async function startScan() {
-  const reader = document.getElementById("reader");
-  const status = document.getElementById("status");
-  reader.style.display = "block";
-  status.textContent = "Opening camera...";
-
-  scanningLocked = false;
-
-  qr = new Html5Qrcode("reader");
+  document.getElementById("idleState").classList.add("hidden");
+  document.getElementById("reader-container").classList.remove("hidden");
+  
+  qrScanner = new Html5Qrcode("reader");
   try {
-    await qr.start(
+    await qrScanner.start(
       { facingMode: "environment" },
-      { fps: 10, qrbox: 250 },
+      { fps: 15, qrbox: { width: 250, height: 250 } },
       onScanSuccess
     );
-    status.textContent = "Scan the QR shown on phone.";
+    document.getElementById("status").textContent = "Align QR code within frame";
   } catch (err) {
-    status.textContent = "Camera start failed. Please allow camera permission. " + err;
+    document.getElementById("status").textContent = "Camera blocked or not found";
   }
 }
 
-// If already logged in, go home directly
-(function () {
-  const userStr = localStorage.getItem("shinko_user");
-  if (userStr) {
-    window.location.href = "./home.html";
-    return;
-  }
-
-  document.getElementById("startBtn").addEventListener("click", startScan);
-})();
+document.getElementById("startBtn").addEventListener("click", startScan);
