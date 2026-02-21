@@ -1,5 +1,7 @@
-// ===== CONFIG =====
 const API_BASE = "https://shinko-health-server.up.railway.app";
+
+let scanningLocked = false;
+let qr; // keep reference
 
 async function consumeToken(token) {
   const msg = document.getElementById("msg");
@@ -18,24 +20,36 @@ async function consumeToken(token) {
 
   if (!res.ok) {
     msg.textContent = data.detail || "Failed";
+    // allow scanning again if it failed
+    scanningLocked = false;
     return;
   }
 
-  welcome.textContent = data.message; // Welcome John
-  msg.textContent = `Logged in: ${data.user.email}`;
+  // ✅ success
+  welcome.textContent = data.message;
+  msg.textContent = "";
+
+  // ✅ stop camera scanning to prevent double consume
+  try {
+    await qr.stop();
+    await qr.clear();
+  } catch (e) {
+    // ignore
+  }
 }
 
-// scan handler
 function onScanSuccess(decodedText) {
-  // Expect: qrlogin:<token>
+  if (scanningLocked) return;
+
   if (!decodedText.startsWith("qrlogin:")) return;
 
+  scanningLocked = true; // lock immediately
   const token = decodedText.slice("qrlogin:".length).trim();
   consumeToken(token);
 }
 
-// Start camera scan
-const qr = new Html5Qrcode("reader");
+// start scanner
+qr = new Html5Qrcode("reader");
 qr.start(
   { facingMode: "environment" },
   { fps: 10, qrbox: 250 },
