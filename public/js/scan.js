@@ -1,5 +1,5 @@
 // ===== CONFIG =====
-const API_BASE = "https://YOUR-API-PRODUCTION.up.railway.app";
+const API_BASE = "http://shinko-health-server.up.railway.app/";
 
 async function consumeToken(token) {
   const msg = document.getElementById("msg");
