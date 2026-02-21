@@ -3,14 +3,21 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Shinko Health Tablet - Scan</title>
+  <title>Shinko Health Tablet</title>
+  <style>
+    body { font-family: sans-serif; padding: 24px; }
+    .btn { font-size: 20px; padding: 14px 22px; cursor: pointer; }
+    #reader { margin-top: 16px; width: 360px; }
+    #status { margin-top: 12px; }
+  </style>
 </head>
 <body>
-  <h2>Scan QR</h2>
+  <h2>Tablet Login</h2>
 
-  <div id="reader" style="width: 360px;"></div>
-  <h1 id="welcome"></h1>
-  <p id="msg"></p>
+  <button id="startBtn" class="btn">Start</button>
+
+  <div id="reader" style="display:none;"></div>
+  <p id="status"></p>
 
   <script src="https://unpkg.com/html5-qrcode"></script>
   <script src="./js/scan.js"></script>
