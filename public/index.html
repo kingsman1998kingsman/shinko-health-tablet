@@ -3,32 +3,77 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Shinko Tablet | Check-In</title>
+  <title>Shinko Health | Body Scale</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-black flex flex-col items-center justify-center min-h-screen text-white overflow-hidden">
-  <div class="z-10 text-center space-y-8 w-full max-w-lg px-6">
+<body class="bg-black flex flex-col items-center justify-center min-h-screen text-white overflow-hidden p-6">
+  
+  <div class="z-10 text-center space-y-8 w-full max-w-2xl">
+    
     <div class="space-y-2">
-      <h1 class="text-4xl font-light tracking-widest uppercase">Shinko Health</h1>
-      <p class="text-slate-400">Tablet Terminal v1.0</p>
+      <h1 class="text-4xl font-light tracking-widest uppercase">Shinko Kiosk</h1>
+      <p id="mainStatus" class="text-slate-400 text-xl">Digital Scale Terminal</p>
     </div>
 
-    <div id="reader-container" class="relative group mx-auto hidden overflow-hidden rounded-3xl border-4 border-slate-800 shadow-2xl">
+    <div id="idleState" class="py-12 transition-all">
+      <button id="startBtn" class="bg-blue-600 text-white px-16 py-6 rounded-full font-bold text-2xl hover:bg-blue-500 transition-all transform hover:scale-105 shadow-[0_0_40px_rgba(37,99,235,0.4)]">
+        TAP TO START
+      </button>
+    </div>
+
+    <div id="reader-container" class="relative group mx-auto hidden overflow-hidden rounded-3xl border-4 border-slate-800 shadow-2xl pb-16 max-w-md">
       <div id="reader" class="w-full aspect-square bg-slate-900"></div>
       <div class="absolute inset-0 border-2 border-blue-500/50 pointer-events-none animate-pulse"></div>
-      
-      <button id="cancelScanBtn" class="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-6 py-2 rounded-full font-bold text-sm shadow-lg hover:bg-red-600">
-        Cancel Scan
-      </button>
+      <button id="cancelScanBtn" class="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-red-600 text-white px-8 py-3 rounded-full font-bold text-lg shadow-lg hover:bg-red-500 z-50">Cancel</button>
     </div>
 
-    <div id="idleState" class="py-12">
-      <button id="startBtn" class="bg-white text-black px-12 py-4 rounded-full font-bold text-lg hover:bg-blue-500 hover:text-white transition-all transform hover:scale-105 active:scale-95">
-        TAP TO SCAN
-      </button>
+    <div id="measurementState" class="hidden w-full bg-slate-900 p-8 rounded-3xl border border-slate-800 shadow-2xl relative">
+        <h2 id="patientName" class="text-3xl text-blue-400 font-bold mb-2"></h2>
+        
+        <div id="generateSection" class="py-10">
+          <p class="text-slate-400 mb-6">Please step onto the device and click below to begin.</p>
+          <button id="generateBtn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-12 py-5 rounded-full font-bold text-xl shadow-lg transition-all active:scale-95">
+            GENERATE DATA
+          </button>
+        </div>
+
+        <div id="loadingSection" class="hidden py-12 flex flex-col items-center space-y-6">
+          <div class="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          <p class="text-xl text-blue-400 font-medium animate-pulse">Calculating, please wait...</p>
+        </div>
+
+        <div id="resultsSection" class="hidden">
+          <p id="scaleInstruction" class="text-green-400 text-xl mb-8">Measurements Captured!</p>
+          
+          <div class="grid grid-cols-2 gap-6 text-left mb-8">
+            <div class="bg-black p-6 rounded-2xl border border-slate-800">
+              <p class="text-sm text-slate-500 uppercase font-bold tracking-wider">Weight</p>
+              <p id="readout_weight" class="text-5xl font-bold text-white mt-2">--<span class="text-2xl text-slate-500 ml-2">kg</span></p>
+            </div>
+            <div class="bg-black p-6 rounded-2xl border border-slate-800">
+              <p class="text-sm text-slate-500 uppercase font-bold tracking-wider">Heart Rate</p>
+              <p id="readout_hr" class="text-5xl font-bold text-rose-500 mt-2">--<span class="text-2xl text-slate-500 ml-2">bpm</span></p>
+            </div>
+            <div class="bg-black p-6 rounded-2xl border border-slate-800">
+              <p class="text-sm text-slate-500 uppercase font-bold tracking-wider">Activity</p>
+              <p id="readout_steps" class="text-5xl font-bold text-emerald-500 mt-2">--<span class="text-2xl text-slate-500 ml-2">steps</span></p>
+            </div>
+            <div class="bg-black p-6 rounded-2xl border border-slate-800">
+              <p class="text-sm text-slate-500 uppercase font-bold tracking-wider">Sleep</p>
+              <p id="readout_sleep" class="text-5xl font-bold text-purple-500 mt-2">--<span class="text-2xl text-slate-500 ml-2">%</span></p>
+            </div>
+          </div>
+        </div>
+
+        <div id="doneSection" class="hidden flex flex-col items-center space-y-3 pt-4 border-t border-slate-800">
+          <p id="countdownText" class="text-slate-400 text-sm font-mono tracking-widest">AUTO-LOGOUT IN 60s</p>
+          <button id="doneBtn" class="bg-blue-600 hover:bg-blue-500 text-white px-12 py-4 rounded-full font-bold text-xl shadow-[0_0_20px_rgba(37,99,235,0.4)] transition-all active:scale-95">
+            DONE
+          </button>
+        </div>
+      </div>
     </div>
 
-    <p id="status" class="text-slate-500 font-mono text-sm tracking-tighter uppercase"></p>
   </div>
 
   <script src="https://unpkg.com/html5-qrcode"></script>
