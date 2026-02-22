@@ -5,11 +5,11 @@ let scanningLocked = false;
 let countdownTimer = null;
 let activeUserId = null;
 
-// URL ကနေ ဘယ်စက်အမျိုးအစားလဲဆိုတာ ဖတ်ယူခြင်း (Default: body_scale)
+// Identify machine type from URL
 const urlParams = new URLSearchParams(window.location.search);
 const CURRENT_MACHINE = urlParams.get('machine') || 'body_scale';
 
-// === UI Elements Mapping ===
+// === UI Elements ===
 const uiIdle = document.getElementById("idleState");
 const uiReader = document.getElementById("reader-container");
 const uiMeasurement = document.getElementById("measurementState");
@@ -30,18 +30,16 @@ window.onload = () => {
     mainStatus.textContent = titles[CURRENT_MACHINE] || "Smart Terminal";
 };
 
-// === 1. QR Scanning Logic ===
+// === QR Scanning Logic ===
 async function startScan() {
     uiIdle.classList.add("hidden");
     uiMeasurement.classList.add("hidden");
     uiReader.classList.remove("hidden");
     
-    // Camera element ကို အမှန်တကယ် ပေါ်လာအောင် Force လုပ်ခြင်း
     document.getElementById("reader").style.display = "block";
 
     qrScanner = new Html5Qrcode("reader");
     try {
-        // Tablet ရဲ့ ရှေ့ကင်မရာ သုံးချင်ရင် "user", နောက်ကင်မရာ သုံးချင်ရင် "environment"
         await qrScanner.start(
             { facingMode: "environment" }, 
             { 
@@ -60,7 +58,6 @@ async function startScan() {
 function onScanSuccess(decodedText) {
     if (scanningLocked) return;
     
-    // Mobile app ကထုတ်ပေးတဲ့ QR ဟာ "qrlogin:TOKEN" ပုံစံဖြစ်ရပါမယ်
     if (decodedText.startsWith("qrlogin:")) {
         scanningLocked = true;
         const token = decodedText.slice(8).trim();
@@ -84,7 +81,6 @@ async function consumeToken(token) {
             return;
         }
 
-        // Scan အောင်မြင်ရင် ကင်မရာပိတ်ပြီး Measurement UI ပြောင်းမည်
         if (qrScanner) { await qrScanner.stop(); }
         uiReader.classList.add("hidden");
         prepareMeasurementUI(data.user);
@@ -95,7 +91,7 @@ async function consumeToken(token) {
     }
 }
 
-// === 2. Measurement UI Logic ===
+// === Measurement Logic ===
 function prepareMeasurementUI(user) {
     activeUserId = user.user_id;
     uiMeasurement.classList.remove("hidden");
@@ -107,12 +103,10 @@ function prepareMeasurementUI(user) {
     document.getElementById("patientName").textContent = `Welcome, ${user.name}`;
 }
 
-// Generate Button ကို နှိပ်လိုက်တဲ့အခါ (Calculation အတုပြုလုပ်ခြင်း)
 generateBtn.addEventListener("click", async () => {
     generateSection.classList.add("hidden");
     loadingSection.classList.remove("hidden");
 
-    // ၅ စက္ကန့်ကြာ စောင့်ဆိုင်းပြီး Data ထုတ်ပေးခြင်း
     setTimeout(async () => {
         const fakeMetrics = {
             user_id: activeUserId,
@@ -124,7 +118,6 @@ generateBtn.addEventListener("click", async () => {
         };
 
         try {
-            // Database ဆီသို့ Data ပို့ခြင်း
             const res = await fetch(`${API_BASE}/metrics/update`, {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
@@ -143,33 +136,20 @@ generateBtn.addEventListener("click", async () => {
     }, 5000);
 });
 
-// displayResults function ထဲတွင် အခုလို ပြင်ပေးပါ
 function displayResults(data) {
     loadingSection.classList.add("hidden");
     resultsSection.classList.remove("hidden");
     doneSection.classList.remove("hidden");
 
-    // Weight ပြသခြင်း
-    document.getElementById("readout_weight").innerHTML = 
-        `${data.body_weight}<span class="text-[3vh] text-slate-500 ml-4">kg</span>`;
-
-    // Heart Rate ပြသခြင်း (text-rose-500 သို့မဟုတ် text-offken-red class ထည့်ရန်)
-    document.getElementById("readout_hr").innerHTML = 
-        `${data.heart_rate}<span class="text-[3vh] text-slate-500 ml-4">bpm</span>`;
-    
-    // စာသားတစ်ခုလုံးကို နီစေချင်ပါက readout_hr element ကို တိုက်ရိုက် class ထည့်နိုင်ပါသည်
-    document.getElementById("readout_hr").className = "text-[9vh] font-black text-rose-500 leading-none tracking-tighter";
-
-    // Activity နှင့် Sleep ပြသခြင်း
-    document.getElementById("readout_steps").innerHTML = 
-        `${data.steps}<span class="text-[3vh] text-slate-500 ml-4">steps</span>`;
-    document.getElementById("readout_sleep").innerHTML = 
-        `${data.sleep_quality}<span class="text-[3vh] text-slate-500 ml-4">%</span>`;
+    document.getElementById("readout_weight").innerHTML = `${data.body_weight}<span class="text-[3vh] text-slate-500 ml-4">kg</span>`;
+    document.getElementById("readout_hr").innerHTML = `${data.heart_rate}<span class="text-[3vh] text-slate-500 ml-4">bpm</span>`;
+    document.getElementById("readout_steps").innerHTML = `${data.steps}<span class="text-[3vh] text-slate-500 ml-4">steps</span>`;
+    document.getElementById("readout_sleep").innerHTML = `${data.sleep_quality}<span class="text-[3vh] text-slate-500 ml-4">%</span>`;
 
     startLogoutCountdown();
 }
 
-// === 3. Reset & Helpers ===
+// === Session Helpers ===
 function startLogoutCountdown() {
     let timeLeft = 60;
     document.getElementById("countdownText").textContent = `AUTO-RESET IN ${timeLeft}S`;
@@ -199,7 +179,6 @@ function resetKiosk() {
     mainStatus.textContent = "Smart Terminal Ready";
 }
 
-// Event Listeners
 document.getElementById("startBtn").addEventListener("click", startScan);
 document.getElementById("cancelScanBtn").addEventListener("click", resetKiosk);
 document.getElementById("doneBtn").addEventListener("click", resetKiosk);
