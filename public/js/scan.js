@@ -66,7 +66,6 @@ function onScanSuccess(decodedText) {
 }
 
 async function consumeToken(token) {
-    mainStatus.textContent = "Verifying Identity...";
     try {
         const res = await fetch(`${API_BASE}/qr/consume`, {
             method: "POST",
@@ -100,10 +99,19 @@ function prepareMeasurementUI(user) {
     resultsSection.classList.add("hidden");
     doneSection.classList.add("hidden");
     
-    document.getElementById("patientName").textContent = `Welcome, ${user.name}`;
+    // FIX: Only set the name here. The word "Welcome" stays in the HTML structure.
+    document.getElementById("patientName").textContent = user.name;
+    
+    // Ensure the header is in "Welcome" mode if it was changed previously
+    document.getElementById('sessionHeader').innerHTML = `Welcome <span id="patientName" class="text-offken-green">${user.name}</span>`;
+    document.getElementById('sessionSubheader').textContent = "Station Ready. Stand Still.";
 }
 
 generateBtn.addEventListener("click", async () => {
+      // Inside your result-handling function in scan.js:
+    document.getElementById('sessionHeader').innerHTML = 'Analysis <span class="text-offken-green">Results</span>';
+    document.getElementById('sessionSubheader').textContent = "Personal Health Summary";
+
     generateSection.classList.add("hidden");
     loadingSection.classList.remove("hidden");
 
