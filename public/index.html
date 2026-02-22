@@ -4,9 +4,21 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no" />
   <title>Off-ken | Active Terminal</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
+  
   <style>
     :root { --offken-green: #76bc21; --offken-navy: #0f172a; --offken-orange: #f3a107; }
+    
+    /* Global Font Stack & Italics Removal */
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      font-style: normal !important;
+    }
+    * { font-style: normal !important; }
+
+    .bg-offken-orange { background-color: var(--offken-orange); }
     .bg-offken-green { background-color: var(--offken-green); }
     .text-offken-green { color: var(--offken-green); }
     .shinko-dark { background: var(--offken-navy); }
@@ -18,28 +30,10 @@
       width: 100%; height: 100%;
       z-index: 0;
       overflow: hidden;
-      transition: opacity 1s ease-in-out, visibility 1s;
+      transition: opacity 1s ease-in-out;
     }
-
-    .pulse-container {
-      position: absolute;
-      inset: 0;
-      display: flex; justify-content: center; align-items: center;
-      z-index: 5;
-      overflow: hidden;
-      pointer-events: none;
-      transition: opacity 0.8s ease-in-out;
-    }
-
-    .session-active .video-background,
-    .session-active .pulse-container {
-      opacity: 0;
-      visibility: hidden;
-    }
-
     .video-background video {
       min-width: 100%; min-height: 100%;
-      width: auto; height: auto;
       position: absolute;
       top: 50%; left: 50%;
       transform: translate(-50%, -50%);
@@ -53,112 +47,111 @@
       z-index: 1;
     }
 
-    .ring {
-      position: absolute; border: 3px solid var(--offken-green);
-      border-radius: 50%; animation: ripple 4s infinite ease-out; opacity: 0;
-    }
-    .ring:nth-child(2) { animation-delay: 1.2s; }
-    .ring:nth-child(3) { animation-delay: 2.4s; }
-    
-    @keyframes ripple {
-      0% { width: 100px; height: 100px; opacity: 0.8; }
-      100% { width: 170vh; height: 170vh; opacity: 0; }
-    }
+    .session-active .video-background { opacity: 0; visibility: hidden; }
+
     @keyframes scan { 0% { top: 0%; } 50% { top: 100%; } 100% { top: 0%; } }
     #reader video { object-fit: cover !important; width: 100% !important; height: 100% !important; }
+
+    /* UI SCALING: Ensure everything fits in 100vh */
+    body { height: 100vh; width: 100vw; overflow: hidden; }
   </style>
 </head>
-<body id="mainBody" class="shinko-dark h-screen w-screen flex flex-col font-sans overflow-hidden text-white relative">
+<body id="mainBody" class="shinko-dark flex flex-col text-white relative">
   
   <div class="video-background">
-    <video autoplay muted loop playsinline id="bgVideo">
-      <source src="offken-promo.mp4" type="video/mp4">
-    </video>
+    <video autoplay muted loop playsinline id="bgVideo"><source src="offken-promo.mp4" type="video/mp4"></video>
     <div class="vignette"></div>
   </div>
 
-  <div class="pulse-container">
-    <div class="ring"></div><div class="ring"></div><div class="ring"></div>
-  </div>
-
   <div class="relative z-50 flex flex-col h-full w-full">
-    <header class="h-[10vh] flex justify-center items-center bg-white/5 backdrop-blur-xl border-b border-white/10 shrink-0 px-10 rounded-b-[2rem] shadow-2xl">
-      <div class="flex items-center gap-4">
-        <div class="bg-white p-1.5 rounded-xl shadow-lg flex items-center justify-center">
+    <header class="h-[10vh] flex justify-center items-center bg-white/5 backdrop-blur-xl border-b border-white/10 shrink-0 px-10 relative">
+      <button id="langToggle" class="absolute right-10 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-full text-[1.2vh] font-bold uppercase border border-white/30 transition-all">
+        JP / EN
+      </button>
+
+      <div class="flex items-center gap-6">
+        <div class="bg-white p-2 rounded-2xl">
           <img src="offken-logo.png" alt="Logo" class="h-[5vh] w-auto">
         </div>
         <div class="text-left">
-          <h1 class="text-[3vh] font-black uppercase italic leading-none">OFF-KEN <span class="font-light not-italic text-white/80">HEALTH</span></h1>
-          <p id="mainStatus" class="text-offken-green text-[1.2vh] font-bold tracking-[0.4em] uppercase mt-0.5">Smart Terminal</p>
+          <h1 class="text-[3vh] font-black uppercase leading-none">OFF-KEN <span class="font-light text-white/80">HEALTH</span></h1>
+          <p id="mainStatus" class="text-offken-green text-[1.3vh] font-bold tracking-[0.4em] uppercase mt-1">Smart Terminal</p>
         </div>
       </div>
     </header>
 
-    <main class="flex-1 flex flex-col items-center justify-between relative px-6 py-4 overflow-hidden text-center">
+    <main class="flex-1 flex flex-col items-center justify-between p-4 overflow-hidden text-center">
       
-      <div id="idleState" class="flex-1 flex flex-col items-center justify-center space-y-6">
-        <h2 class="text-[7vh] font-black uppercase italic drop-shadow-2xl">Ready to Analyze?</h2>
-        <button id="startBtn" onclick="toggleSessionView(true)" class="bg-offken-green text-white px-16 py-6 rounded-[3rem] font-black text-[3.5vh] shadow-xl uppercase italic active:scale-95 transition-all">
-          Tap to Start
-        </button>
+      <div id="headerContainer" class="flex flex-col items-center justify-center flex-1">
+        <h2 id="sessionHeader" class="text-[6vh] font-black uppercase text-white drop-shadow-md">Ready to Analyze?</h2>
+        <p id="sessionSubheader" class="text-[2vh] text-slate-400 font-bold uppercase tracking-[0.5em] mt-2">Tap button below</p>
       </div>
 
-      <div id="reader-container" class="hidden flex-1 flex flex-col items-center justify-center space-y-4">
-        <h2 class="text-[4vh] font-black uppercase italic">Show QR Code</h2>
-        <div class="relative rounded-[3rem] overflow-hidden border-[8px] border-white/5 aspect-square max-h-[35vh] mx-auto bg-black shadow-2xl">
-          <div id="reader" class="w-full h-full opacity-90"></div>
-          <div class="absolute inset-x-0 top-0 h-1.5 bg-offken-green shadow-[0_0_15px_#76bc21] animate-[scan_3s_infinite_linear] z-[60]"></div>
+      <div id="contentArea" class="w-full max-w-4xl flex items-center justify-center">
+        <div id="idleState">
+          <button id="startBtn" onclick="toggleSessionView(true)" class="bg-offken-green text-white px-16 py-6 rounded-[3rem] font-black text-[4vh] shadow-xl uppercase transition-transform active:scale-95">
+            Start
+          </button>
         </div>
-        <button id="cancelScanBtn" onclick="toggleSessionView(false)" class="text-slate-400 font-black text-[2.5vh] uppercase">Cancel</button>
+
+        <div id="reader-container" class="hidden flex-1 flex flex-col items-center justify-center w-full px-4">
+          <h2 id="scanIdTitle" class="text-[4vh] font-black uppercase tracking-[0.2em] text-white mb-6">Scan Identity</h2>
+          
+          <div class="relative w-full max-w-md aspect-[3/4] max-h-[50vh] mx-auto overflow-hidden rounded-[3rem] border-4 border-white/10 shadow-2xl bg-black">
+            
+            <div id="reader" class="w-full h-full opacity-90"></div>
+
+            <div class="absolute inset-0 pointer-events-none z-[70]">
+              <div class="absolute inset-0 flex items-center justify-center opacity-30">
+                <div class="w-8 h-[2px] bg-white"></div>
+                <div class="h-8 w-[2px] bg-white absolute"></div>
+              </div>
+            </div>
+          </div>
+
+          <button id="cancelScanBtn" onclick="toggleSessionView(false)" class="mt-8 text-slate-500 hover:text-white font-bold text-[2.5vh] uppercase tracking-[0.4em] transition-all">
+            Cancel / キャンセル
+          </button>
+        </div>
+
+        <div id="resultsSection" class="hidden w-full grid grid-cols-2 gap-4">
+          <div class="bg-slate-900/60 backdrop-blur-md p-5 rounded-[2.5rem] border border-white/10 text-left">
+            <p id="labelWeight" class="text-[1.6vh] text-slate-500 font-bold uppercase">Weight</p>
+            <p id="readout_weight" class="text-[7vh] font-black text-white leading-none">--</p>
+          </div>
+          <div class="bg-slate-900/60 backdrop-blur-md p-5 rounded-[2.5rem] border border-white/10 text-left">
+            <p id="labelHR" class="text-[1.6vh] text-slate-500 font-bold uppercase">Heart Rate</p>
+            <p id="readout_hr" class="text-[7vh] font-black text-rose-500 leading-none">--</p>
+          </div>
+          <div class="bg-slate-900/60 backdrop-blur-md p-5 rounded-[2.5rem] border border-white/10 text-left">
+            <p id="labelSteps" class="text-[1.6vh] text-slate-500 font-bold uppercase">Activity</p>
+            <p id="readout_steps" class="text-[7vh] font-black text-offken-green leading-none">--</p>
+          </div>
+          <div class="bg-slate-900/60 backdrop-blur-md p-5 rounded-[2.5rem] border border-white/10 text-left">
+            <p id="labelSleep" class="text-[1.6vh] text-slate-500 font-bold uppercase">Sleep Quality</p>
+            <p id="readout_sleep" class="text-[7vh] font-black text-blue-400 leading-none">--</p>
+          </div>
+        </div>
       </div>
 
-      <div id="measurementState" class="hidden flex-1 flex flex-col items-center justify-between w-full max-w-5xl">
-        
-        <div class="text-center">
-          <h2 id="sessionHeader" class="text-[5vh] font-black italic uppercase text-white drop-shadow-md">
-            Welcome <span id="patientName" class="text-offken-green">--</span>
-          </h2>
-          <p id="sessionSubheader" class="text-[1.8vh] text-slate-400 font-bold uppercase tracking-[0.4em] mt-1 italic">Scan to Begin</p>
-        </div>
-        
-        <div id="generateSection" class="w-full py-6 bg-white/5 rounded-[2.5rem] border border-white/10 text-center backdrop-blur-sm">
-          <p class="text-slate-300 text-[2.5vh] mb-4 italic">Station Ready. Stand Still.</p>
-          <button id="generateBtn" class="bg-[#f3a107] text-white px-20 py-6 rounded-[1.5rem] font-black text-[3.5vh] uppercase shadow-xl active:scale-95 transition-all">
+      <div id="footerArea" class="flex flex-col items-center justify-center flex-1 w-full">
+        <div id="generateSection" class="hidden w-full max-w-lg">
+          <p id="standStillMsg" class="text-slate-400 mb-4 text-[2vh] uppercase tracking-widest font-bold">Station Ready. Stand Still.</p>
+          <button id="generateBtn" class="bg-offken-orange text-white w-full py-6 rounded-3xl font-black text-[3.5vh] uppercase shadow-xl active:scale-95 transition-all">
             Calculate Now
           </button>
         </div>
 
         <div id="loadingSection" class="hidden py-6 flex flex-col items-center space-y-4">
           <div class="w-[10vh] h-[10vh] border-[8px] border-offken-green border-t-transparent rounded-full animate-spin"></div>
-          <p class="text-[4vh] text-offken-green font-black animate-pulse uppercase">Processing</p>
-        </div>
-
-        <div id="resultsSection" class="hidden w-full bg-slate-900/60 backdrop-blur-md p-6 rounded-[3rem] border border-white/10 shadow-2xl">
-          <div class="grid grid-cols-2 gap-4">
-            <div class="bg-white/5 p-4 rounded-[1.5rem] border border-white/5 text-left">
-              <p class="text-[1.4vh] text-slate-500 font-bold uppercase tracking-widest">Weight</p>
-              <p id="readout_weight" class="text-[6.5vh] font-black text-white leading-none">--<span class="text-[2.5vh] text-slate-500 ml-2">kg</span></p>
-            </div>
-            <div class="bg-white/5 p-4 rounded-[1.5rem] border border-white/5 text-left">
-              <p class="text-[1.4vh] text-slate-500 font-bold uppercase tracking-widest">Heart Rate</p>
-              <p id="readout_hr" class="text-[6.5vh] font-black text-rose-500 leading-none">--<span class="text-[2.5vh] text-slate-500 ml-2">bpm</span></p>
-            </div>
-            <div class="bg-white/5 p-4 rounded-[1.5rem] border border-white/5 text-left">
-              <p class="text-[1.4vh] text-slate-500 font-bold uppercase tracking-widest">Activity</p>
-              <p id="readout_steps" class="text-[6.5vh] font-black text-offken-green leading-none">--</p>
-            </div>
-            <div class="bg-white/5 p-4 rounded-[1.5rem] border border-white/5 text-left">
-              <p class="text-[1.4vh] text-slate-500 font-bold uppercase tracking-widest">Sleep Quality</p>
-              <p id="readout_sleep" class="text-[6.5vh] font-black text-blue-400 leading-none">--<span class="text-[2.5vh] text-slate-500 ml-2">%</span></p>
-            </div>
-          </div>
+          <p id="processingText" class="text-[4vh] text-offken-green font-black uppercase">Processing</p>
         </div>
 
         <div id="doneSection" class="hidden w-full flex flex-col items-center pb-2">
-          <button id="doneBtn" onclick="toggleSessionView(false)" class="bg-offken-green text-white px-24 py-6 rounded-[2rem] font-black text-[4vh] uppercase shadow-lg active:scale-95 transition-all mb-2">
-            FINISH
+          <button id="doneBtn" onclick="toggleSessionView(false)" class="bg-offken-green text-white px-24 py-5 rounded-[2.5rem] font-black text-[4.5vh] uppercase shadow-lg active:scale-95 transition-all mb-2">
+            Finish
           </button>
-          <p id="countdownText" class="text-slate-500 font-mono text-[1.6vh] uppercase tracking-[0.4em]">Session ends in 60s</p>
+          <p id="countdownText" class="text-slate-500 font-mono text-[1.6vh] uppercase tracking-[0.4em]">Reset in 60s</p>
         </div>
       </div>
     </main>
@@ -174,15 +167,21 @@
 
     function toggleSessionView(isActive) {
         const body = document.getElementById('mainBody');
-        const sessionHeader = document.getElementById('sessionHeader');
-        const sessionSubheader = document.getElementById('sessionSubheader');
+        const header = document.getElementById('sessionHeader');
+        const subheader = document.getElementById('sessionSubheader');
         
+        // Use global lang state from scan.js
+        const lang = translations[currentLang];
+
         if (isActive) {
             body.classList.add('session-active');
-            sessionHeader.innerHTML = 'Welcome <span id="patientName" class="text-offken-green">--</span>';
-            sessionSubheader.textContent = "Scan to Begin";
+            header.innerHTML = `${lang.welcome} <span id="patientName" class="text-offken-green">--</span>`;
+            subheader.textContent = lang.scan_title;
+            if (typeof startScan === "function") startScan();
         } else {
             body.classList.remove('session-active');
+            header.textContent = lang.idle_title;
+            subheader.textContent = lang.idle_sub;
             if (typeof resetKiosk === "function") resetKiosk();
         }
     }
