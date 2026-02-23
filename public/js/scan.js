@@ -1,6 +1,6 @@
 // === Configuration & State ===
-//const API_BASE = "https://shinko-health-server.up.railway.app"; 
-const API_BASE = "http://52.204.206.89:8000"; 
+const API_BASE = "https://shinko-health-server.up.railway.app"; 
+//const API_BASE = "http://52.204.206.89:8000"; 
 let qrScanner = null;
 let scanningLocked = false;
 let countdownTimer = null;
