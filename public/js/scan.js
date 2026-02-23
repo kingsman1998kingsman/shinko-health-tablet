@@ -1,6 +1,12 @@
 // === Configuration & State ===
-const API_BASE = "https://shinko-health-server.up.railway.app"; 
+//--Test API--
+//const API_BASE = "https://shinko-health-server.up.railway.app"; 
+
+//--AWS ECR--
 //const API_BASE = "http://52.204.206.89:8000"; 
+
+//--AWS APP RUNNDER--
+const API_BASE = "https://ftdzpwhncu.us-east-1.awsapprunner.com";
 let qrScanner = null;
 let scanningLocked = false;
 let countdownTimer = null;
